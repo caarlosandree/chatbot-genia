@@ -1,0 +1,88 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.9'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+group = 'com.chatbotgen'
+version = '0.1.0'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Spring Boot Starters
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // Banco de Dados
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // Migrations
+    implementation 'org.flywaydb:flyway-core:11.20.0'
+    implementation 'org.flywaydb:flyway-database-postgresql:11.20.0'
+
+    // Documentação API
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
+
+    // JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+
+    // Mapeamento
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+
+    // Observabilidade
+    implementation 'io.micrometer:micrometer-tracing-bridge-otel'
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
+    implementation 'net.logstash.logback:logstash-logback-encoder:8.0'
+
+    // Utilitários
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    implementation 'io.github.cdimascio:dotenv-java:3.2.0'
+
+    // Testes
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:junit-jupiter'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    jvmArgs += ['--enable-native-access=ALL-UNNAMED']
+    systemProperty 'io.netty.noUnsafe', 'true'
+}
+
+// Configuração para execução (bootRun)
+tasks.withType(JavaExec) {
+    // Mantém a permissão de acesso nativo (necessária para outras partes do Netty/Native libs)
+    jvmArgs += ['--enable-native-access=ALL-UNNAMED']
+    
+    // CORREÇÃO: Instrui o Netty a não usar sun.misc.Unsafe (que gera o aviso de depreciação)
+    // Isso faz o Netty usar alocação de memória padrão do Java (segura e sem warnings)
+    systemProperty 'io.netty.noUnsafe', 'true'
+}
+

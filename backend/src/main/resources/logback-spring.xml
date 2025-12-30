@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- Propriedades -->
+    <springProperty scope="context" name="app.name" source="spring.application.name" defaultValue="chatbot-gen-backend"/>
+    <property name="LOG_DIR" value="logs"/>
+    
+    <!-- Appender para arquivo INFO: Rotação diária, retenção 10 dias, compactação gzip -->
+    <!-- Formato: info-chatbot-gen-backend-2024-01-15.log (arquivo atual) -->
+    <!-- Formato: info-chatbot-gen-backend-2024-01-14.log.gz (arquivos anteriores compactados) -->
+    <appender name="FILE_INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/info-${app.name}.log</file>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeContext>true</includeContext>
+            <includeCallerData>false</includeCallerData>
+            <customFields>{"application":"${app.name}"}</customFields>
+            <fieldNames>
+                <timestamp>@timestamp</timestamp>
+                <version>[ignore]</version>
+                <level>level</level>
+                <levelValue>[ignore]</levelValue>
+                <logger>logger</logger>
+                <message>message</message>
+                <thread>[ignore]</thread>
+                <mdc>mdc</mdc>
+            </fieldNames>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/info-${app.name}-%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <maxHistory>10</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+            <cleanHistoryOnStart>false</cleanHistoryOnStart>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Appender para arquivo WARN: Rotação diária, retenção 10 dias, compactação gzip -->
+    <!-- Formato: warn-chatbot-gen-backend-2024-01-15.log (arquivo atual) -->
+    <!-- Formato: warn-chatbot-gen-backend-2024-01-14.log.gz (arquivos anteriores compactados) -->
+    <appender name="FILE_WARN" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/warn-${app.name}.log</file>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeContext>true</includeContext>
+            <includeCallerData>false</includeCallerData>
+            <customFields>{"application":"${app.name}"}</customFields>
+            <fieldNames>
+                <timestamp>@timestamp</timestamp>
+                <version>[ignore]</version>
+                <level>level</level>
+                <levelValue>[ignore]</levelValue>
+                <logger>logger</logger>
+                <message>message</message>
+                <thread>[ignore]</thread>
+                <mdc>mdc</mdc>
+            </fieldNames>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/warn-${app.name}-%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <maxHistory>10</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+            <cleanHistoryOnStart>false</cleanHistoryOnStart>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Appender para arquivo ERROR: Rotação diária, retenção 10 dias, compactação gzip -->
+    <!-- Formato: error-chatbot-gen-backend-2024-01-15.log (arquivo atual) -->
+    <!-- Formato: error-chatbot-gen-backend-2024-01-14.log.gz (arquivos anteriores compactados) -->
+    <appender name="FILE_ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/error-${app.name}.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeContext>true</includeContext>
+            <includeCallerData>false</includeCallerData>
+            <customFields>{"application":"${app.name}"}</customFields>
+            <fieldNames>
+                <timestamp>@timestamp</timestamp>
+                <version>[ignore]</version>
+                <level>level</level>
+                <levelValue>[ignore]</levelValue>
+                <logger>logger</logger>
+                <message>message</message>
+                <thread>[ignore]</thread>
+                <mdc>mdc</mdc>
+            </fieldNames>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/error-${app.name}-%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <maxHistory>10</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+            <cleanHistoryOnStart>false</cleanHistoryOnStart>
+        </rollingPolicy>
+    </appender>
+    
+    <!-- Appender para desenvolvimento: Console com texto colorido e legível -->
+    <springProfile name="dev">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) [%thread] [%X{trace_id:-}] %cyan(%logger{36}) - %msg%n%ex{full}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+        
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE_INFO"/>
+            <appender-ref ref="FILE_WARN"/>
+            <appender-ref ref="FILE_ERROR"/>
+        </root>
+    </springProfile>
+
+    <!-- Appender para produção: JSON estruturado no console + arquivos -->
+    <springProfile name="prod">
+        <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeContext>true</includeContext>
+                <includeCallerData>false</includeCallerData>
+                <customFields>{"application":"${app.name}"}</customFields>
+                <fieldNames>
+                    <timestamp>@timestamp</timestamp>
+                    <version>[ignore]</version>
+                    <level>level</level>
+                    <levelValue>[ignore]</levelValue>
+                    <logger>logger</logger>
+                    <message>message</message>
+                    <thread>[ignore]</thread>
+                    <mdc>mdc</mdc>
+                </fieldNames>
+            </encoder>
+        </appender>
+        
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_JSON"/>
+            <appender-ref ref="FILE_INFO"/>
+            <appender-ref ref="FILE_WARN"/>
+            <appender-ref ref="FILE_ERROR"/>
+        </root>
+    </springProfile>
+
+    <!-- Níveis de log cirúrgicos -->
+    <!-- Nossa aplicação: DEBUG em dev, INFO em prod -->
+    <springProfile name="dev">
+        <logger name="com.chatbotgen" level="DEBUG"/>
+    </springProfile>
+    <springProfile name="prod">
+        <logger name="com.chatbotgen" level="INFO"/>
+    </springProfile>
+    
+    <!-- Spring Framework: WARN (muito verboso em INFO) -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.springframework.web" level="INFO"/>
+    <logger name="org.springframework.security" level="WARN"/>
+    
+    <!-- Hibernate: WARN (muito verboso em INFO) -->
+    <logger name="org.hibernate" level="WARN"/>
+    <!-- SQL logging desabilitado - muito verboso e não relevante para logs de produção -->
+    <logger name="org.hibernate.SQL" level="WARN"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="WARN"/>
+    
+    <!-- Spring Data JPA: WARN -->
+    <logger name="org.springframework.data" level="WARN"/>
+    
+    <!-- HTTP Client: INFO para ver requisições em dev, WARN em homolog/prod -->
+    <springProfile name="dev">
+        <logger name="org.springframework.web.client" level="INFO"/>
+    </springProfile>
+    <springProfile name="prod">
+        <logger name="org.springframework.web.client" level="WARN"/>
+    </springProfile>
+    
+    <!-- Flyway: INFO (para ver migrations) -->
+    <logger name="org.flywaydb" level="INFO"/>
+    
+    <!-- Outras bibliotecas barulhentas: WARN -->
+    <logger name="org.apache" level="WARN"/>
+    <logger name="com.zaxxer.hikari" level="WARN"/>
+    <logger name="org.postgresql" level="WARN"/>
+    
+    <!-- SpringDoc/Swagger: WARN -->
+    <logger name="org.springdoc" level="WARN"/>
+</configuration>
